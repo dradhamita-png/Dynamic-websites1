@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Admission Portal</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: linear-gradient(135deg, #1f4037, #99f2c8);
+    color: #fff;
+    transition: 0.3s;
+}
+
+/* DARK MODE */
+.dark {
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+}
+
+/* HEADER */
+header {
+    text-align: center;
+    padding: 20px;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+/* TOP BAR */
+.top-bar {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* FORM */
+.form-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+}
+
+input, select {
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    width: 180px;
+}
+
+/* BUTTON */
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 10px;
+    background: #ff416c;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: scale(1.05);
+}
+
+/* SEARCH + FILTER */
+.search {
+    text-align: center;
+    margin: 10px;
+}
+
+.search input, .search select {
+    width: 200px;
+    margin: 5px;
+}
+
+/* COUNTER */
+.counter {
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+/* TABLE */
+table {
+    width: 90%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+}
+
+th, td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+tr:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+/* ACTION BUTTONS */
+.action-btn {
+    cursor: pointer;
+    margin: 0 5px;
+}
+
+/* FOOTER */
+.footer {
+    text-align: center;
+    padding: 10px;
+    color: cyan;
+    text-shadow: 0 0 8px cyan;
+}
+</style>
+</head>
+
+<body>
+
+<header>🎓 Student Admission Portal</header>
+
+<div class="top-bar">
+    <button onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
+</div>
+
+<!-- FORM -->
+<div class="form-container">
+    <input type="text" id="name" placeholder="Student Name">
+    <input type="number" id="age" placeholder="Age">
+    <input type="email" id="email" placeholder="Email">
+
+    <select id="course">
+        <option value="">Select Course</option>
+        <option>Science</option>
+        <option>Commerce</option>
+        <option>Arts</option>
+        <option>Engineering</option>
+    </select>
+
+    <button onclick="addStudent()">Add Student</button>
+</div>
+
+<!-- SEARCH + FILTER -->
+<div class="search">
+    <input type="text" id="search" placeholder="Search student..." onkeyup="renderTable()">
+    
+    <select id="filterCourse" onchange="renderTable()">
+        <option value="">All Courses</option>
+        <option>Science</option>
+        <option>Commerce</option>
+        <option>Arts</option>
+        <option>Engineering</option>
+    </select>
+</div>
+
+<!-- COUNTER -->
+<div class="counter">
+    Total Students: <span id="count">0</span>
+</div>
+
+<!-- TABLE -->
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Email</th>
+            <th>Course</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="table"></tbody>
+</table>
+
+<!-- FOOTER -->
+<div class="footer">
+    <p>&copy; Radhamita</p>
+</div>
+
+<script>
+let students = JSON.parse(localStorage.getItem("students")) || [];
+
+/* ADD */
+function addStudent() {
+    const name = document.getElementById("name").value;
+    const age = document.getElementById("age").value;
+    const email = document.getElementById("email").value;
+    const course = document.getElementById("course").value;
+
+    if (!name || !age || !email || !course) {
+        alert("Fill all fields");
+        return;
+    }
+
+    students.push({ name, age, email, course });
+    localStorage.setItem("students", JSON.stringify(students));
+
+    alert("Student Added ✅");
+
+    clearForm();
+    renderTable();
+}
+
+/* CLEAR */
+function clearForm() {
+    document.getElementById("name").value = "";
+    document.getElementById("age").value = "";
+    document.getElementById("email").value = "";
+    document.getElementById("course").value = "";
+}
+
+/* DELETE */
+function deleteStudent(index) {
+    if (confirm("Delete this student?")) {
+        students.splice(index, 1);
+        localStorage.setItem("students", JSON.stringify(students));
+        renderTable();
+    }
+}
+
+/* EDIT */
+function editStudent(index) {
+    const s = students[index];
+
+    document.getElementById("name").value = s.name;
+    document.getElementById("age").value = s.age;
+    document.getElementById("email").value = s.email;
+    document.getElementById("course").value = s.course;
+
+    deleteStudent(index);
+}
+
+/* DARK MODE */
+function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+}
+
+/* RENDER */
+function renderTable() {
+    const table = document.getElementById("table");
+    const search = document.getElementById("search").value.toLowerCase();
+    const filter = document.getElementById("filterCourse").value;
+
+    table.innerHTML = "";
+
+    let filtered = students.filter(s => {
+        return (
+            (s.name.toLowerCase().includes(search) ||
+             s.email.toLowerCase().includes(search)) &&
+            (filter === "" || s.course === filter)
+        );
+    });
+
+    document.getElementById("count").textContent = filtered.length;
+
+    filtered.forEach((s, index) => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${s.name}</td>
+            <td>${s.age}</td>
+            <td>${s.email}</td>
+            <td>${s.course}</td>
+            <td>
+                <span class="action-btn" onclick="editStudent(${index})">✏️</span>
+                <span class="action-btn" onclick="deleteStudent(${index})">🗑</span>
+            </td>
+        `;
+
+        table.appendChild(row);
+    });
+}
+
+/* INIT */
+renderTable();
+</script>
+
+</body>
+</html>
